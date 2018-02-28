@@ -81,7 +81,7 @@ use multiple smartcards to store multiple copies of it.
 Adapt the names and email address to your likings. Those will be used throughout
 for `gpg`, but will not matter for X.509 certificate creation.
 
-```
+```sh
 # today + 10 years for expiry date
 EXPIRY_DATE=$(expr $(date +%Y) + 10)-$(date +%m-%d)
 # Generate key locally. Choose algorithms supported by your card!
@@ -125,7 +125,7 @@ to gather some information to issue properly formatted X.509 certificates.
 This procedure assumes you have an OpenPGP smartcard that contains a
 key usable for certification (a *Signature key*), as done previously:
 
-```
+```sh
 gpg2 --card-status
 [...]
 Signature key ....: 96FC AA94 26F9 8AAB [...]
@@ -142,7 +142,7 @@ issue certificate as long as you know the Keygrip associated with the key.
 By convention slot 1 is used
 for cert,sign types (e.g. OPENPGP.1) on the card:
 
-```
+```sh
 # Get the different Keygrips known by the connected smartcard
 # We will take the one for OPENPGP.1
 echo "LEARN --sendinfo" | gpg-connect-agent | grep KEYPAIRINFO
@@ -168,7 +168,7 @@ is that it will be self-signed, whereas end-entity certificates are not
 
 ### Gather X.509 extension values
 
-```
+```sh
 # Export the public key in SSH format, then convert it to PEM
 FPR=$(gpg2 --with-colons --list-key security@company.org \
 	| grep '^fpr' | cut -d: -f10)
@@ -215,7 +215,7 @@ We will follow the same steps as above. This implies that the CA handles the
 keypair generation, which is not necessarily the case in more robust setups
 (entity keeps its private key secret and only share its public key).
 
-```
+```sh
 # we need the entity's public key. You can obtain one from multiple ways,
 # from receiving a CSR or an already X.509 certificate. You can also
 # generate your own keypair, should you manage the private key yourself.
