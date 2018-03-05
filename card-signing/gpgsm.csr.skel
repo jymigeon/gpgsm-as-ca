@@ -1,0 +1,18 @@
+Key-Type: @KEYTYPE@
+Key-Grip: @KGRIP@
+Serial: random
+Signing-Key: @SIGNINGKEY@
+Name-DN: @NAMEDN@
+Issuer-DN: @CADN@
+Hash-Algo: @HASH@
+Not-After: @DATE@
+Subject-Key-Id: @SKI@
+Authority-Key-Id: @AKI@
+# X.509 extensions. Format is <OID> [nc] <hex-value>
+# n: non-critical, c: critical
+# BasicConstraints: CA:FALSE
+Extension: 2.5.29.19 c 3000
+# KeyUsage
+Extension: 2.5.29.15 @KEYUSAGE@
+# ExtendedKeyUsage
+Extension: 2.5.29.37 @EKEYUSAGE@

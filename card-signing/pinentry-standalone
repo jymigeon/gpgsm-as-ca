@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# This program fakes a real pinentry program.
+# It is used as a solution when gpg/gpgsm have to be used standalone like
+# a service running on a server or through headless scripts.
+
+# It accepts one argument: the name of the variable that
+# contains the passphrase.
+# When no argument is given, it tries to fetch it from PASSPHRASE,
+# and if it fails, sets a default value instead.
+
+if [ $# -ge 1 ]; then
+	eval PIN=\${$1}
+fi
+if [ -z "$PIN" ]; then
+	PIN="$PASSPHRASE"
+fi
+if [ -z "$PIN" ]; then
+	PIN=123456
+fi
+export PIN
+
+# Pinentry accepts lower/upper case commands, so...
+toupper ()
+{
+	echo "$@" | tr '[a-z]' '[A-Z]'
+}
+
+reply_d ()
+{
+	echo "D $@"
+	echo "OK"
+}
+
+reply_ok ()
+{
+	echo "OK $@"
+}
+
+error ()
+{
+	echo "ERR 83886355 unknown command"
+}
+
+main ()
+{
+	echo "OK Your orders please"
+	while read REPLY; do
+		REPLY=$(toupper "$REPLY")
+		case "$REPLY" in
+			"GETPIN")
+				reply_d "$PIN"
+			;;
+			"BYE")
+				reply_ok "closing connection"
+				exit 0
+			;;
+			*)
+			# Simply ignore the rest of commands and say OK
+				reply_ok
+			;;
+		esac
+	done
+}
+
+main
+
+# Error case -- only happens when read failed.
+exit 1
