@@ -21,7 +21,7 @@ which can be costly.
 The present document explains how an OpenPGP card could be used
 as a low cost HSM. Additionally [a card-signing program](#card-signing) shows how new end-entity
 certificate could be provisioned in a semi-automated way through a combination
-of `gpgsm` and *openssl*.
+of `gpgsm` and `openssl`.
 
 Note that the following short guide is not meant to be a drop-in
 replacement for real, certified solutions (like FIPS 140-2). If
