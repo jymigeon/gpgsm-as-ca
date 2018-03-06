@@ -389,7 +389,7 @@ under alias:
   end-entity
 
 You can verify the validity of the certificate via openssl:
-  openssl verify -x509_strict -CAfile <your-ca-cert.pem> "entity-name.pem"
+  openssl verify -x509_strict -CAfile <your-ca-cert.pem> 'entity-name.pem'
 ```
 
 ## Testing
@@ -399,13 +399,13 @@ Once executed, the script will:
 1. ask you to enter the PIN of the connected card;
 1. perform the signing, then create the PKCS12 and PEM files of the entity.
 
-It is recommended to validate the generated certificate through OpenSSL:
+It is recommended to validate the generated certificate through `openssl`:
 
 ```sh
-    openssl verify -x509_strict -CAfile <ca-cert.pem> <entity-cert.pem>
+    openssl verify -x509_strict -CAfile <ca-cert.pem> 'entity-cert.pem'
 ```
 
-If all went well, openssl should return you a plain and simple **OK**.
+If all went well, `openssl` should return you a plain and simple **OK**.
 
 # Conclusion
 
