@@ -414,11 +414,9 @@ reason anymore to keep having your devops and system administrators copy/paste
 the private key of your internal CA all around, or (worse) commit it to some
 public repository and share the password via chat or SMS.
 
-For convenience an example script to generate new key pairs is attached.
-It allows someone to almost completely provision new entities signed by the CA
-on demand, as long as he manages to know the OpenPGP card PIN.
-
-
+For convenience the certificate creation step can be made close to automated.
+Anyone that wants to build up a CA using `gpgsm` could take inspiration on the
+[card-signing program](#card-signing) and adapt it to its needs.
 
 [1]: https://en.wikipedia.org/wiki/Hardware_security_module
 [2]: https://www.keylength.com/
