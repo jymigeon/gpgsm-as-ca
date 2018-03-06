@@ -354,6 +354,44 @@ certificate.
 
 Fill-in the information and the script should figure out the rest by itself (see the configuration's file comments for details).
 
+## Execution
+
+Once done with its configuration, the script can be executed directly from
+command-line:
+
+```sh
+$ ./card-signing.sh card-signing.conf entity-name
+Generating a 2048 bit RSA private key
+[...]
+The following CSR has been created:
+===============================================================
+...
+Signing-Key: 374BBD38A571605C2984F60AFF2FBF09CCAEFA48
+...
+===============================================================
+Proceed to signing? [Y/N]
+```
+
+If you answer **Y** here, the script will attempt to contact the card via
+`gpgsm`, and perform the certificate creation and signing. If all went well from
+there, the entity certificate and its corresponding key will be found under
+*entity-name.p12* and *entity-name.pem*:
+
+```sh
+[...]
+The following third-party files were generated:
+  entity-name.pem : PEM file with private key and signed cert
+  entity-name.p12 : PKCS12 file with private key and signed cert
+
+Private elements are protected with the following password:
+  86bd34097794d81ba6ce89a6051a
+under alias:
+  end-entity
+
+You can verify the validity of the certificate via openssl:
+  openssl verify -x509_strict -CAfile <your-ca-cert.pem> "entity-name.pem"
+```
+
 ## Testing
 
 Once executed, the script will:
@@ -380,7 +418,7 @@ For convenience an example script to generate new key pairs is attached.
 It allows someone to almost completely provision new entities signed by the CA
 on demand, as long as he manages to know the OpenPGP card PIN.
 
-# References
+
 
 [1]: https://en.wikipedia.org/wiki/Hardware_security_module
 [2]: https://www.keylength.com/

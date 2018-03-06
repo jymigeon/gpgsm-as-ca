@@ -87,19 +87,21 @@ _gen_csr() {
 	# we need to create one.
 	openssl pkcs12 -export -passout env:PASSPHRASE -out "$P12FILE" \
 	    -passin env:PASSPHRASE -inkey "$PRIVKEY" -in "$CERTFILE"
-	# Create a new keypair to certify
-	gpg-agent -q --pinentry-program "$PIN_PRGM" --daemon gpgsm \
-	    --import "$P12FILE"
+	# Import keypair into gpgsm
+	gpg-agent -q --pinentry-program "$PIN_PRGM" --daemon
+	gpgsm --import "$P12FILE"
 	# Get associated keygrip
 	KGRIP=$(gpgsm --dump-cert | awk '/keygrip:/ {print $2}')
 	# Write down the CSR for the imported self-signed cert
 	sed -e "s|@KGRIP@|$KGRIP|g;s|@SKI@|$SKI|g;$SEDCMD" \
 	    "$CSR_SKEL" > "$CSR_CFG"
 
+	echo
+	echo "==============================================================="
 	echo "The following CSR has been created:"
-	echo "===================================================="
+	echo "==============================================================="
 	cat  "$CSR_CFG"
-	echo "===================================================="
+	echo "==============================================================="
 }
 
 _sign_csr() {
@@ -133,11 +135,11 @@ _fini() {
 	echo
 	echo "Private elements are protected with the following password:"
 	echo "  $PASSPHRASE"
-	echo "under alias: \`$ALIAS'."
+	echo "under alias:"
+	echo "  $ALIAS"
 	echo
 	echo "You can verify the validity of the certificate via openssl":
-	echo "  openssl verify -x509_strict \ "
-	echo "      -CAfile <your-ca-cert.pem> \"$FINALPEM\""
+	echo "  openssl verify -x509_strict -CAfile <your-ca-cert.pem> \"$FINALPEM\""
 }
 
 if [ $# -ne 2 ]; then
