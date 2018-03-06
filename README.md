@@ -19,12 +19,12 @@ EC (or bigger RSA moduli) become only available with high-tier HSMs
 which can be costly.
 
 The present document explains how an OpenPGP card could be used
-as a low cost HSM. Additionally a script []() shows how new end-entity
-certificate could be created in a semi-automated way through a combination
-of `gpgsm` and `openssl`.
+as a low cost HSM. Additionally [a card-signing program](#card-signing) shows how new end-entity
+certificate could be provisioned in a semi-automated way through a combination
+of *gpgsm* and *openssl*.
 
 Note that the following short guide is not meant to be a drop-in
-replacement for real, certified solutions (like FIPS 140-2 if mandatory). If
+replacement for real, certified solutions (like FIPS 140-2). If
 your environment requires this kind of equipment, go get one.
 
 # Card initialization and CA creation
@@ -43,7 +43,7 @@ Setup the card with a PIN and Admin PIN. The PIN will be needed for all
 subsequent signing operations, and the Admin PIN for the maintenance/admin
 mode of the card:
 
-```
+```sh
 # Check that communication with the card is OK
 gpg2 --card-status
 gpg2 --card-edit
@@ -67,11 +67,11 @@ your PKI with backup in mind;
 * generate the key directly onto the card. The key will never leave the
 hardware device so you will not be able to backup it.
 
-Here we chose to generate the key pair through `gpg`,
+Here we chose to generate the key pair through *gpg*,
 then proceed to generating a self-signed certificate that will be the CA one.
 Note that OpenPGP and X.509 use vastly different formats and standards, so
-although we use `gpg` for key generation, the X.509 part will be done through
-`gpgsm` instead.
+although we use *gpg* for key generation, the X.509 part will be done through
+*gpgsm* instead.
 
 ### Generate CA key and upload it to card
 
@@ -91,7 +91,7 @@ Key-Length: 4096
 Name-Real: company.org CA
 Name-Email: security@company.org
 Expire-Date: $EXPIRY_DATE
-Key-Usage: cert,sign
+Key-Usage: cert
 EOF
 # Optional: save the key
 gpg2 --export-secret-key security@company.org > key.gpg
@@ -101,7 +101,6 @@ gpg> keytocard
 Really move the primary key? (y/N) y
 Please select where to store the key:
    (1) Signature key
-   (3) Authentication key
 Your selection? 1
 Replace existing key? (y/N) y
 gpg> quit
@@ -116,7 +115,7 @@ Card serial no. = <OpenPGP card-id>
 
 The CA private key is now stored on the smartcard. We proceed
 to the creation of a self-signed certificate, but first we need 
-to gather some information to issue properly formatted X.509 certificates.
+to gather some information to issue a properly formatted X.509 one.
 
 # Create a certificate
 
@@ -133,14 +132,14 @@ Signature key ....: 96FC AA94 26F9 8AAB [...]
 [...]
 ```
 
-If there is one, we can issue X.509 certificate signing requests and
+If there is one, we can issue certificate signing requests and
 get those signed by the key. The newly created certificate will
-therefore be /certified/ by the corresponding CA.
+therefore be *certified* by the corresponding CA.
 
 If the private key is not part of the current keyring, you can still
 issue certificate as long as you know the Keygrip associated with the key.
 By convention slot 1 is used
-for cert,sign types (e.g. OPENPGP.1) on the card:
+for cert,sign types (e.g. **OPENPGP.1**) on the card:
 
 ```sh
 # Get the different Keygrips known by the connected smartcard
@@ -150,6 +149,8 @@ S KEYPAIRINFO 365FF87A1DB5D0D6ABB3F49C7A773B76636E87EF OPENPGP.2
 S KEYPAIRINFO 6139BC175842700D7310952D9A2CAC081B55FC09 OPENPGP.1
 ...
 ```
+
+## Generate a X.509 certificate
 
 X.509 certificates often come with extensions, like *AuthorityKeyIdentifier* (AKI), *SubjectKeyIdentifier* (SKI), *Key Usage* or *Basic Constraints*.
 `gpgsm` does not necessarily take care of all those by
@@ -162,11 +163,34 @@ The process is typically as followed:
 
 The main difference between the (root) CA certificate and an end-entity one
 is that it will be self-signed, whereas end-entity certificates are not
-(their public key is different from the CA one for obvious reasons).
+(their public key is different from the CA one, for obvious reasons).
 
-## Generate a self-signed certificate
+## X.509 extension values and GPGSM keygrip(s)
 
-### Gather X.509 extension values
+The certificate's *AuthorityKeyIdentifier* and *SubjectKeyIdentifier* are
+nowadays SHA-1 fingerprints of public keys. To compute them properly we have
+to export public keys and calculate their respective fingerprints.
+
+*gpgsm* batch mode will require a **Signing-Key** and a **Key-Grip**.
+Both of these values are actually Keygrips, but their role differ:
+* **Signing-Key** corresponds to the Keygrip of the signing authority. In our case
+it will always match the Keygrip from the CA key;
+* **Key-Grip** corresponds to the Keygrip of the entity we wish to create a
+certificate for.
+
+The **CA certificate** is self-signed. Therefore the **Signing-Key and Key-Grip
+will have the same value, e.g. the one corresponding to the CA's public key**.
+
+For an *end-entity certificate*, the **Signing-Key will be the one of our CA**, however
+the **Key-Grip will correspond to the entity public key**. Those value are
+therefore expected to differ.
+
+### CA, self-signed certificate
+
+This section details the command to create the CA self-signed certificate.
+
+Taking back our example of the keypair created through `gpg`:
+
 
 ```sh
 # Export the public key in SSH format, then convert it to PEM
@@ -181,8 +205,9 @@ SKI=$(openssl asn1parse -strparse 19 -noout -in pub.pem -out /dev/stdout | \
 CA_NAME="EMail=security@company.org, CN=Company.org CA, OU=Security, O=CompanyOrg, L=YourLocality, ST=YourState, C=XX"
 # Expiration: T + 10 years
 EXPIRY_DATE=$(expr $(date +%Y) + 10)-$(date +%m-%d)
+
 # Use batch mode, and generate a certificate with the correct Constraints and KU
-# Note that Keygrip and Signing-key match, because we are self-signing here
+# Keygrip and Signing-key match, we are self-signing here
 gpgsm --gen-key --batch << EOF | openssl x509 -inform DER -out cacert.pem
 Key-Type: RSA
 Key-Grip: 6139BC175842700D7310952D9A2CAC081B55FC09
@@ -202,25 +227,27 @@ Extension: 2.5.29.15 c 03020106
 EOF
 ```
 
-You know should have a proper CA certificate in /cacert.pem/ .
+You should now have a proper CA certificate under `cacert.pem`.
 
 ## Generate a new key pair and end-entity certificate(s)
 
 End-entity certificates follow almost the exact same example as above, except
 that:
-1. we have to create a new keypair first, the one associated with the entity;
-1. the X.509 extensions and DNs will differ.
+1. we have to create a new keypair first (the one associated with the entity);
+1. some X.509 extensions and Distinguished Names will differ.
 
 We will follow the same steps as above. This implies that the CA handles the
 keypair generation, which is not necessarily the case in more robust setups
-(entity keeps its private key secret and only share its public key).
+(entity keeps its private key secret and only share its public key via a
+certificate request).
 
 ```sh
 # we need the entity's public key. You can obtain one from multiple ways,
 # from receiving a CSR or an already X.509 certificate. You can also
 # generate your own keypair, should you manage the private key yourself.
-# We will import one from an openssl-req command.
-openssl req -x509 -newkey rsa:2048 -keyout private-key.pem -out non-approved-cert.pem
+# We will import one from an openssl req command.
+openssl req -x509 -newkey rsa:2048 -subj '/CN=placeholder/' \
+    -keyout private-key.pem -out non-approved-cert.pem
 # Set entity name
 NAME="EMail=entity@company.org, CN=Entity company.org, OU=Entity, O=CompanyOrg, L=YourLocality, ST=YourState, C=XX"
 # Set CA name (required for the Issuer DN)
@@ -228,16 +255,16 @@ CA_NAME="EMail=security@company.org, CN=Company.org CA, OU=Security, O=CompanyOr
 # Expire in 3 years
 EXPIRY_DATE=$(expr $(date +%Y) + 3)-$(date +%m-%d)
 # The entity's AuthorityKeyIdentifier shall match the CA's SubjectKeyIdentifier
-# You can fetch CA's SKI for its certificate if needed. We re-use the one
+# You can fetch CA's SKI out of its certificate if needed. We re-use the one
 # previously set
 AKI="$SKI"
-# Compute entity's SKI (or grab it directly from cert)
+# Compute entity's SKI (or grab it directly from the non-approved PEM cert above)
 SKI=$(openssl x509 -in non-approved-cert.pem -pubkey -outform DER | \
     openssl asn1parse -strparse 19 -noout -out /dev/stdout | \
     openssl dgst -sha1 -r /dev/stdin | cut -d" " -f1)
 # Import the non-yet approved certificate into keyring
 gpgsm --import non-approved-cert.pem
-# We need its associated keygrip
+# Get its associated keygrip
 gpgsm --list-keys --with-keygrip
 ...
 keygrip: D3513A1ED332557D9654CF547DD3848E0BDB6D35
@@ -263,23 +290,98 @@ Extension: 2.5.29.37 n 301406082B0601050507030106082B06010505070302
 EOF
 ```
 
-You shall know have the end-entity certificate found in /entity-cert.pem/.
+You now should have a proper CA certificate under *entity-cert.pem*.
 
 # Typical X.509 extensions and values
 
-Incoming!
+At the time of this document, *gpgsm* does not support all X.509 extensions.
+For **BasicConstraints**, **(Extended)KeyUsage** or **KeyIdentifiers** we have to go
+through the **Extension** parameter (like shown in the previous examples).
+
+The most used ones are:
+```sh
+# X.509 extensions. Format is <OID> [nc] <hex-value>
+# n: non-critical, c: critical
+
+# BasicConstraints: CA:FALSE
+Extension: 2.5.29.19 c 3000
+# BasicConstraints: CA:TRUE
+Extension: 2.5.29.19 c 30030101FF
+
+# KeyUsage: Certificate Sign, CRL Sign
+Extension: 2.5.29.15 c 03020106
+# KeyUsage: Digital Signature
+Extension: 2.5.29.15 c 03020780
+# KeyUsage: Digital Signature, Key Encipherment
+Extension: 2.5.29.15 c 030205A0
+
+
+# ExtendedKeyUsage: Web Server Authentication, Web Client Authentication
+Extension: 2.5.29.37 n 301406082B0601050507030106082B06010505070302
+# ExtendedKeyUsage: Code Signing
+Extension: 2.5.29.37 n 300A06082B06010505070303
+```
+
+You can also obtain those using the *openssl asn1parse* command combined with
+a certificate that contains the Extension attribute you wish to set. Look for its
+associated value and set it accordingly inside your *gpgsm* certificate request.
+
+### <a id="card-signing" />
+# Card-signing script
+
+For convenience the end-entity creation steps can be automated, especially
+if you have an OpenPGP card. The script will generate keypairs for you and
+generate corresponding PKCS12 and PEM files.
+
+The program is fairly straightforward and requires:
+* a configuration file that contains all the information needed to peform
+the certificate creation step;
+* a basename, used for the PKCS12 and PEM files generation.
+
+```sh
+$ ./card-signing.sh 
+Usage: ./card-signing.sh: <conf-file> <basename>
+  conf-file: path to the configuration file
+  basename : basename for entity's PKCS12 and PEM files
+```
+
+## Configuration
+
+The configuration file is composed of two parts:
+* the entity information: its DN, key type and size, and expiration date;
+* the CA information. Please ensure that those match the attributes in the CA
+certificate.
+
+Fill-in the information (see the configuration's file comments).
+
+## Testing
+
+Once executed, the script will:
+1. generate a new entity key pair given the provided configuration;
+1. ask you to enter the PIN of the connected card;
+1. perform the signing, then create the PKCS12 and PEM files of the entity.
+
+It is recommended to validate the generated certificate through OpenSSL:
+
+```sh
+    openssl verify -x509_strict -CAfile <ca-cert.pem> <entity-cert.pem>
+```
+
+If all went well, openssl should return you a plain and simple **OK**.
 
 # Conclusion
 
 Given the rich set of features now available through GPGSM, there is no real
 reason anymore to keep having your devops and system administrators copy/paste
 the private key of your internal CA all around, or (worse) commit it to some
-random public repository and share the password via chat or SMS.
+public repository and share the password via chat or SMS.
 
-For convenience, an example script to generate new keypairs is attached.
+For convenience an example script to generate new key pairs is attached.
 It allows someone to almost completely provision new entities signed by the CA
 on demand, as long as he manages to know the OpenPGP card PIN.
 
-[1] https://en.wikipedia.org/wiki/Hardware_security_module
-[2] https://www.keylength.com/
-[3] https://csrc.nist.gov/Projects/PIV
+# References
+
+[1]: https://en.wikipedia.org/wiki/Hardware_security_module
+[2]: https://www.keylength.com/
+[3]: https://csrc.nist.gov/Projects/PIV
