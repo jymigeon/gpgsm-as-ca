@@ -5,15 +5,15 @@ How to turn an OpenPGP card into a low-end certificate authority HSM
 # Introduction
 
 For a few different (good) reasons, you might be in need of running a X.509
-PKI CA backed up by an (HSM)[1]:
+PKI CA backed up by an [HSM][1]:
 * to store (and sometimes generate) its private key onto the device to
 prevent its extraction;
 * avoid copying the private key around, but still offer the possibility
 for others to issue and sign certificates through a GUI or CLI;
 * for performance or HA reasons.
 
-Keylength recommendations [2] can make it difficult to use systems like
-PIV [3] or the PKCS11 interfaces provided by low-tier devices as they
+[Keylength recommendations][2] can make it difficult to use systems like
+[PIV][3] or the PKCS11 interfaces provided by low-tier devices as they
 are often restricted to RSA with a maximum modulus size of 2048 bits.
 EC (or bigger RSA moduli) become only available with high-tier HSMs
 which can be costly.
