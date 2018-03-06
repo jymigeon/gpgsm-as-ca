@@ -139,7 +139,7 @@ _fini() {
 	echo "  $ALIAS"
 	echo
 	echo "You can verify the validity of the certificate via openssl":
-	echo "  openssl verify -x509_strict -CAfile <your-ca-cert.pem> \"$FINALPEM\""
+	echo "  openssl verify -x509_strict -CAfile <your-ca-cert.pem> '$FINALPEM'"
 }
 
 if [ $# -ne 2 ]; then
