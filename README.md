@@ -165,7 +165,7 @@ The main difference between the (root) CA certificate and an end-entity one
 is that it will be self-signed, whereas end-entity certificates are not
 (their public key is different from the CA one, for obvious reasons).
 
-## X.509 extension values and GPGSM keygrip(s)
+### X.509 extension values and GPGSM keygrip(s)
 
 The certificate's *AuthorityKeyIdentifier* and *SubjectKeyIdentifier* are
 nowadays SHA-1 fingerprints of public keys. To compute them properly we have
@@ -185,12 +185,11 @@ For an *end-entity certificate*, the **Signing-Key will be the one of our CA**, 
 the **Key-Grip will correspond to the entity public key**. Those value should
 not match.
 
-### CA self-signed certificate
+## CA self-signed certificate
 
 This section details the command to create the CA self-signed certificate.
 
 Taking back our example of the keypair created through `gpg`:
-
 
 ```sh
 # Export the public key in SSH format, then convert it to PEM
@@ -229,7 +228,7 @@ EOF
 
 You should now have a proper CA certificate under `cacert.pem`.
 
-### Generate a new key pair and end-entity certificate(s)
+## Generate a new key pair and end-entity certificate(s)
 
 End-entity certificates follow almost the exact same example as above, except
 that:
