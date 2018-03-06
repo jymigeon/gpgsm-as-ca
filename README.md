@@ -21,7 +21,7 @@ which can be costly.
 The present document explains how an OpenPGP card could be used
 as a low cost HSM. Additionally [a card-signing program](#card-signing) shows how new end-entity
 certificate could be provisioned in a semi-automated way through a combination
-of *gpgsm* and *openssl*.
+of `gpgsm` and *openssl*.
 
 Note that the following short guide is not meant to be a drop-in
 replacement for real, certified solutions (like FIPS 140-2). If
@@ -67,11 +67,11 @@ your PKI with backup in mind;
 * generate the key directly onto the card. The key will never leave the
 hardware device so you will not be able to backup it.
 
-Here we chose to generate the key pair through *gpg*,
+Here we chose to generate the key pair through `gpg`,
 then proceed to generating a self-signed certificate that will be the CA one.
 Note that OpenPGP and X.509 use vastly different formats and standards, so
-although we use *gpg* for key generation, the X.509 part will be done through
-*gpgsm* instead.
+although we use `gpg` for key generation, the X.509 part will be done through
+`gpgsm` instead.
 
 ### Generate CA key and upload it to card
 
@@ -171,19 +171,19 @@ The certificate's *AuthorityKeyIdentifier* and *SubjectKeyIdentifier* are
 nowadays SHA-1 fingerprints of public keys. To compute them properly we have
 to export public keys and calculate their respective fingerprints.
 
-*gpgsm* batch mode will require a **Signing-Key** and a **Key-Grip**.
+`gpgsm` batch mode will require a **Signing-Key** and a **Key-Grip**.
 Both of these values are actually Keygrips, but their role differ:
 * **Signing-Key** corresponds to the Keygrip of the signing authority. In our case
 it will always match the Keygrip from the CA key;
 * **Key-Grip** corresponds to the Keygrip of the entity we wish to create a
 certificate for.
 
-The **CA certificate** is self-signed. Therefore the **Signing-Key and Key-Grip
+As the *CA certificate* is self-signed, the **Signing-Key and Key-Grip
 will have the same value, e.g. the one corresponding to the CA's public key**.
 
 For an *end-entity certificate*, the **Signing-Key will be the one of our CA**, however
-the **Key-Grip will correspond to the entity public key**. Those value are
-therefore expected to differ.
+the **Key-Grip will correspond to the entity public key**. Those value should
+not match.
 
 ### CA, self-signed certificate
 
@@ -294,7 +294,7 @@ You now should have a proper CA certificate under *entity-cert.pem*.
 
 # Typical X.509 extensions and values
 
-At the time of this document, *gpgsm* does not support all X.509 extensions.
+At the time of this document, `gpgsm` does not support all X.509 extensions.
 For **BasicConstraints**, **(Extended)KeyUsage** or **KeyIdentifiers** we have to go
 through the **Extension** parameter (like shown in the previous examples).
 
@@ -322,9 +322,9 @@ Extension: 2.5.29.37 n 301406082B0601050507030106082B06010505070302
 Extension: 2.5.29.37 n 300A06082B06010505070303
 ```
 
-You can also obtain those using the *openssl asn1parse* command combined with
+You can also obtain those using the `openssl asn1parse` command combined with
 a certificate that contains the Extension attribute you wish to set. Look for its
-associated value and set it accordingly inside your *gpgsm* certificate request.
+associated value and set it accordingly inside your `gpgsm` certificate request.
 
 ### <a id="card-signing" />
 # Card-signing script
