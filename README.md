@@ -334,9 +334,9 @@ if you have an OpenPGP card. The script will generate keypairs for you and
 generate corresponding PKCS12 and PEM files.
 
 The program is fairly straightforward and requires:
-* a configuration file that contains all the information needed to peform
+* a [configuration file](card-signing/card-signing.conf) that contains all the information needed to peform
 the certificate creation step;
-* a basename, used for the PKCS12 and PEM files generation.
+* a *basename*, used for the PKCS12 and PEM files generation.
 
 ```sh
 $ ./card-signing.sh 
@@ -347,12 +347,12 @@ Usage: ./card-signing.sh: <conf-file> <basename>
 
 ## Configuration
 
-The configuration file is composed of two parts:
-* the entity information: its DN, key type and size, and expiration date;
+The [configuration file](card-signing/card-signing.conf) is composed of two parts:
+* the entity information: its *DN*, *key type* and *size*, and *expiration date*;
 * the CA information. Please ensure that those match the attributes in the CA
 certificate.
 
-Fill-in the information (see the configuration's file comments).
+Fill-in the information and the script should figure out the rest by itself (see the configuration's file comments for details).
 
 ## Testing
 
