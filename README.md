@@ -185,7 +185,7 @@ For an *end-entity certificate*, the **Signing-Key will be the one of our CA**, 
 the **Key-Grip will correspond to the entity public key**. Those value should
 not match.
 
-### CA, self-signed certificate
+### CA self-signed certificate
 
 This section details the command to create the CA self-signed certificate.
 
@@ -229,7 +229,7 @@ EOF
 
 You should now have a proper CA certificate under `cacert.pem`.
 
-## Generate a new key pair and end-entity certificate(s)
+### Generate a new key pair and end-entity certificate(s)
 
 End-entity certificates follow almost the exact same example as above, except
 that:
