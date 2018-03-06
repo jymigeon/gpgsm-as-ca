@@ -338,7 +338,7 @@ The program is fairly straightforward and requires:
 the certificate creation step;
 * a *basename*, used for the PKCS12 and PEM files generation.
 
-```sh
+```console
 $ ./card-signing.sh 
 Usage: ./card-signing.sh: <conf-file> <basename>
   conf-file: path to the configuration file
@@ -359,7 +359,7 @@ Fill-in the information and the script should figure out the rest by itself (see
 Once done with its configuration, the script can be executed directly from
 command-line:
 
-```sh
+```console
 $ ./card-signing.sh card-signing.conf entity-name
 Generating a 2048 bit RSA private key
 [...]
@@ -377,7 +377,7 @@ If you answer **Y** here, the script will attempt to contact the card via
 there, the entity certificate and its corresponding key will be found under
 *entity-name.p12* and *entity-name.pem*:
 
-```sh
+```console
 [...]
 The following third-party files were generated:
   entity-name.pem : PEM file with private key and signed cert
@@ -401,7 +401,7 @@ Once executed, the script will:
 
 It is recommended to validate the generated certificate through `openssl`:
 
-```sh
+```console
     openssl verify -x509_strict -CAfile <ca-cert.pem> 'entity-cert.pem'
 ```
 
