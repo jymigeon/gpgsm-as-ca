@@ -71,7 +71,6 @@ _setup() {
 	# Final targets
 	export FINALPEM="${BASENAME}.pem"
 	export FINALP12="${BASENAME}.p12"
-	export FINALJKS="${BASENAME}.jks"
 }
 
 # RSA key + CSR (through GPGSM) generation step.
