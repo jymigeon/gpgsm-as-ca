@@ -391,21 +391,6 @@ You can verify the validity of the certificate via openssl:
   openssl verify -x509_strict -CAfile <your-ca-cert.pem> 'entity-name.pem'
 ```
 
-## Testing
-
-Once executed, the script will:
-1. generate a new entity key pair given the provided configuration;
-1. ask you to enter the PIN of the connected card;
-1. perform the signing, then create the PKCS12 and PEM files of the entity.
-
-It is recommended to validate the generated certificate through `openssl`:
-
-```console
-    openssl verify -x509_strict -CAfile <ca-cert.pem> 'entity-cert.pem'
-```
-
-If all went well, `openssl` should return you a plain and simple **OK**.
-
 # Conclusion
 
 Given the rich set of features now available through GPGSM, there is no real
